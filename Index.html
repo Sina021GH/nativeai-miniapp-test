@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<title>Native AI MiniApp</title>
+</head>
+<body>
+<h3>به Native AI خوش آمدی 🌱</h3>
+<p>نام خودت رو وارد کن:</p>
+<input id="name" placeholder="نام">
+<button id="sendBtn">ارسال</button>
+
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
+
+document.getElementById('sendBtn').onclick = () => {
+const name = document.getElementById('name').value;
+tg.sendData(JSON.stringify({name}));
+tg.close();
+};
+</script>
+</body>
+</html>
