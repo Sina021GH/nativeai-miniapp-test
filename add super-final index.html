@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NativeAI Mini App</title>
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap" rel="stylesheet">
+<style>
+/* Body & Pages */
+body, html { margin:0; padding:0; font-family:'Vazirmatn', sans-serif; height:100%; overflow:hidden; background:linear-gradient(135deg,#6a11cb,#2575fc); }
+.page { position:absolute; width:100%; height:100%; top:0; left:100%; display:flex; justify-content:center; align-items:center; transition: left 0.5s ease, opacity 0.5s ease; opacity:0; flex-direction:column; }
+.page.active { left:0; opacity:1; }
+
+/* Splash */
+#splash img { width:100px; height:100px; margin-bottom:20px; animation: rotateLogo 2s linear infinite; }
+@keyframes rotateLogo {0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
+
+/* Card & Form */
+.card { background:white; border-radius:20px; padding:30px; width:360px; box-shadow:0 12px 35px rgba(0,0,0,0.3); text-align:center; transform:scale(0); animation: zoomIn 0.6s forwards; }
+@keyframes zoomIn { to { transform:scale(1); } }
+input, textarea { width:100%; padding:12px; margin-bottom:15px; border:1px solid #ccc; border-radius:10px; font-size:14px; transition:0.3s; }
+input:focus, textarea:focus { border-color:#2575fc; box-shadow:0 0 8px rgba(37,117,252,0.5); outline:none; animation:pulse 0.3s; }
+@keyframes pulse { 0%{box-shadow:0 0 8px rgba(37,117,252,0.5);}50%{box-shadow:0 0 12px rgba(37,117,252,0.8);}100%{box-shadow:0 0 8px rgba(37,117,252,0.5);} }
+button { background:#2575fc; color:white; border:none; padding:12px; width:100%; border-radius:10px; font-size:16px; cursor:pointer; transition:all 0.3s ease; }
+button:hover { background:#6a11cb; transform:scale(1.08); }
+button:active { transform:scale(0.95); }
+
+/* Messages */
+.message { margin-top:15px; padding:12px; border-radius:10px; font-size:14px; display:none; opacity:0; transition:opacity 0.5s, transform 0.5s; position:relative; }
+.message.show { display:flex; align-items:center; justify-content:center; opacity:1; transform:translateY(0); }
+.message.success { background:#d4edda; color:#155724; } .message.error { background:#f8d7da; color:#721c24; } .message.loading { background:#fff3cd; color:#856404; }
+.checkmark { width:26px; height:26px; border-radius:50%; border:3px solid #155724; position:relative; margin-right:10px; transform:scale(0); animation:popIn 0.5s forwards; }
+@keyframes popIn { to { transform:scale(1); } }
+.checkmark::after { content:''; position:absolute; left:6px; top:3px; width:6px; height:12px; border:solid #155724; border-width:0 3px 3px 0; transform:rotate(45deg); display:none; }
+.success.show .checkmark::after { display:block; animation:bounce 0.5s; }
+@keyframes bounce { 0%{transform:rotate(45deg) scale(0);}60%{transform:rotate(45deg) scale(1.2);}100%{transform:rotate(45deg) scale(1);} }
+
+/* Navigation */
+.nav-btn { background:#6a11cb; margin-top:10px; color:white; padding:10px 15px; border:none; border-radius:8px; cursor:pointer; transition:0.3s; }
+.nav-btn:hover { background:#2575fc; }
+</style>
+</head>
+<body>
+
+<!-- Splash -->
+<div class="page active" id="splash">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a7/React-icon.svg" alt="NativeAI Logo">
+    NativeAI
+</div>
+
+<!-- Form Page -->
+<div class="page" id="formPage">
+    <div class="card">
+        <h2>فرم NativeAI</h2>
+        <form id="dataForm">
+            <input type="text" name="name" placeholder="نام شما" required>
+            <input type="email" name="email" placeholder="ایمیل شما" required>
+            <textarea name="message" placeholder="پیام شما..." rows="4" required></textarea>
+            <button type="submit">ارسال</button>
+        </form>
+        <div class="message loading" id="loadingMsg">در حال ارسال...</div>
+        <div class="message success" id="successMsg"><div class="checkmark"></div> اطلاعات با موفقیت ذخیره شد!</div>
+        <div class="message error" id="errorMsg">❌ خطایی رخ داد، دوباره تلاش کنید.</div>
+        <button class="nav-btn" id="aboutBtn">درباره ما</button>
+        <button class="nav-btn" id="thanksBtn">صفحه تشکر</button>
+    </div>
+</div>
+
+<!-- About Page -->
+<div class="page" id="aboutPage">
+    <div class="card">
+        <h2>درباره NativeAI</h2>
+        <p>این Mini App رایگان با Google Sheets ساخته شده و تجربه اپلیکیشن واقعی موبایل دارد.</p>
+        <button class="nav-btn" id="backBtn">بازگشت</button>
+    </div>
+</div>
+
+<!-- Thanks Page -->
+<div class="page" id="thanksPage">
+    <div class="card">
+        <h2>با تشکر!</h2>
+        <p>اطلاعات شما با موفقیت ثبت شد.</p>
+        <button class="nav-btn" id="backFormBtn">بازگشت به فرم</button>
+    </div>
+</div>
+
+<audio id="clickSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3"></audio>
+<audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+
+<script>
+const scriptURL = "https://script.google.com/macros/s/AKfycbxOqrj_g-sGLHHPo5qqaBGMD_5zv17h2OIdb4FNKzTtv_OKTSCcpGasrEOgyEnRg1lDgQ/exec";
+
+const splash = document.getElementById("splash");
+const formPage = document.getElementById("formPage");
+const aboutPage = document.getElementById("aboutPage");
+const thanksPage = document.getElementById("thanksPage");
+
+const dataForm = document.getElementById("dataForm");
+const loadingMsg = document.getElementById("loadingMsg");
+const successMsg = document.getElementById("successMsg");
+const errorMsg = document.getElementById("errorMsg");
+const clickSound = document.getElementById("clickSound");
+const successSound = document.getElementById("successSound");
+
+const aboutBtn = document.getElementById("aboutBtn");
+const backBtn = document.getElementById("backBtn");
+const thanksBtn = document.getElementById("thanksBtn");
+const backFormBtn = document.getElementById("backFormBtn");
+
+// Splash → Form
+set
